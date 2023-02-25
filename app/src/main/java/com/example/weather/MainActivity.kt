@@ -37,6 +37,8 @@ class MainActivity : AppCompatActivity() {
             val longitude = lastLocation.longitude
 
             Log.i("LAST LOCATION", "$latitude, $longitude")
+
+            getLocationWeatherDetails()
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,6 +56,32 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+    }
+
+    private fun getLocationWeatherDetails() {
+        if (!Constants.isNetworkAvailable(this)) {
+            showNetworkServicesDialog()
+            return
+        }
+
+        Toast.makeText(this, "network is available", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showNetworkServicesDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setCancelable(false)
+            .setMessage("Weather App needs a network connection to work properly. Please turn on your network service")
+            .setPositiveButton("Turn On Network Services") { dialog, _ ->
+                dialog.dismiss()
+                val networkSettingsIntent= Intent(Settings.ACTION_NETWORK_OPERATOR_SETTINGS)
+                startActivity(networkSettingsIntent)
+            }
+            .setNegativeButton("Close Weather App") {
+                    dialog, _ ->
+                dialog.dismiss()
+                finish()
+            }
+            .show()
     }
 
     @SuppressLint("MissingPermission")
