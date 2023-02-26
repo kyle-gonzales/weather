@@ -64,8 +64,10 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        Toast.makeText(this, "network is available", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "network is available", Toast.LENGTH_SHORT).show()
+
     }
+
 
     private fun showNetworkServicesDialog() {
         val builder = AlertDialog.Builder(this)
