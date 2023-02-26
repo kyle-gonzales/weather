@@ -23,6 +23,8 @@ import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
+import retrofit2.*
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
             Log.i("LAST LOCATION", "$latitude, $longitude")
 
-            getLocationWeatherDetails()
+            getLocationWeatherDetails(latitude, longitude)
         }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,13 +60,47 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun getLocationWeatherDetails() {
+    private fun getLocationWeatherDetails(latitude : Double, longitude : Double) {
         if (!Constants.isNetworkAvailable(this)) {
             showNetworkServicesDialog()
             return
         }
 
 //        Toast.makeText(this, "network is available", Toast.LENGTH_SHORT).show()
+        //1. create a retrofit instance
+        //2. create an interface for the http requests service
+        //3. create a list call for the http request
+        //4. create an instance of the service interface
+        //5. use the service to query the api
+        //6. enqueue the call
+        val retrofit : Retrofit = Retrofit.Builder()
+            .baseUrl(Constants.BASE_URL)
+            .addConverterFactory(GsonConverterFactory.create()) // converts the data into GSON
+            .build()
+
+        val service : WeatherService = retrofit.create(WeatherService::class.java)
+        val weather : Call<CurrentWeather> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT, resources.getString(R.string.api_key))
+
+        weather.enqueue(object : Callback<CurrentWeather> {
+            override fun onResponse(call: Call<CurrentWeather>, response: Response<CurrentWeather>) {
+                if (response.isSuccessful) {
+                    val weatherList = response.body()
+                    Log.i("WEATHER_RESPONSE", weatherList.toString())
+                } else {
+                    when (response.code()) {
+                        in 300 .. 399 -> Log.e("WEATHER_RESPONSE", "redirected")
+                        in 400 .. 499 -> Log.e("WEATHER_RESPONSE", "not found")
+                        else -> Log.e("WEATHER_RESPONSE", "unforeseen error")
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<CurrentWeather>, t: Throwable) {
+                Toast.makeText(this@MainActivity, "failed to get weather", Toast.LENGTH_SHORT).show()
+                t.printStackTrace()
+            }
+
+        })
 
     }
 
@@ -119,7 +155,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isLocationEnabled(): Boolean {
-        val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val locationManager : LocationManager = getSystemService(LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) || locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
