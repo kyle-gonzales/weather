@@ -11,12 +11,15 @@ import com.example.weather.databinding.ActivityMainBinding
 import com.karumi.dexter.Dexter
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.location.Location
 import android.net.Uri
 import android.os.Looper
 import android.util.Log
+import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
@@ -29,6 +32,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 class MainActivity : AppCompatActivity() {
 
     private var binding : ActivityMainBinding? = null
+    private var progressBarDialog : Dialog? = null
 
     private lateinit var fusedLocationClient : FusedLocationProviderClient
 
@@ -39,7 +43,6 @@ class MainActivity : AppCompatActivity() {
             val longitude = lastLocation.longitude
 
             Log.i("LAST LOCATION", "$latitude, $longitude")
-
             getLocationWeatherDetails(latitude, longitude)
         }
     }
@@ -56,8 +59,6 @@ class MainActivity : AppCompatActivity() {
 //            Toast.makeText(this, "Location is ON", Toast.LENGTH_SHORT).show()
             getLocationPermission()
         }
-
-
     }
 
     private fun getLocationWeatherDetails(latitude : Double, longitude : Double) {
@@ -80,12 +81,18 @@ class MainActivity : AppCompatActivity() {
 
         val service : WeatherService = retrofit.create(WeatherService::class.java)
         val weather : Call<CurrentWeather> = service.getWeather(latitude, longitude, Constants.METRIC_UNIT, resources.getString(R.string.api_key))
+        showProgressDialog()
 
         weather.enqueue(object : Callback<CurrentWeather> {
             override fun onResponse(call: Call<CurrentWeather>, response: Response<CurrentWeather>) {
+                hideProgressDialog()
+
                 if (response.isSuccessful) {
                     val weatherList = response.body()
                     Log.i("WEATHER_RESPONSE", weatherList.toString())
+
+                    updateDisplay(weatherList!!)
+
                 } else {
                     when (response.code()) {
                         in 300 .. 399 -> Log.e("WEATHER_RESPONSE", "redirected")
@@ -96,11 +103,40 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<CurrentWeather>, t: Throwable) {
+                hideProgressDialog()
+
                 Toast.makeText(this@MainActivity, "failed to get weather", Toast.LENGTH_SHORT).show()
                 t.printStackTrace()
             }
 
         })
+
+
+    }
+
+    private fun updateDisplay(weather: CurrentWeather) {
+        binding?.tvMain?.text = weather.weather[0].main
+        binding?.tvDescription?.text = weather.weather[0].description
+
+        when(weather.weather[0].main.lowercase()) {
+            "rain" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.rain))
+            "cloud" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.cloud))
+            "storm" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.storm))
+            "sunny" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.sunny))
+            "snow" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.snowflake))
+            else -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.cloud))
+        }
+
+        binding?.tvHumidity?.text = weather.main.humidity.toString()
+
+        binding?.tvMaxTemp?.text = weather.main.temp_max.toString()
+        binding?.tvMinTemp?.text = weather.main.temp_min.toString()
+
+        binding?.tvWindSpeed?.text = weather.wind.speed.toString()
+        binding?.tvLocation?.text = weather.name
+        //TODO("change the units of measurement")
+
+        
 
     }
 
@@ -198,6 +234,18 @@ class MainActivity : AppCompatActivity() {
                 finish()
             }
             .show()
+    }
+
+    private fun showProgressDialog() {
+        progressBarDialog = Dialog(this)
+        progressBarDialog!!.setContentView(R.layout.progress_dialog_layout)
+        progressBarDialog!!.show()
+    }
+
+    private fun hideProgressDialog() {
+        if (progressBarDialog != null)
+            progressBarDialog!!.cancel()
+        progressBarDialog = null
     }
 
 
