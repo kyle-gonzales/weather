@@ -28,6 +28,8 @@ import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.single.PermissionListener
 import retrofit2.*
 import retrofit2.converter.gson.GsonConverterFactory
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
@@ -114,30 +116,50 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    @SuppressLint("SetTextI18n")
     private fun updateDisplay(weather: CurrentWeather) {
         binding?.tvMain?.text = weather.weather[0].main
         binding?.tvDescription?.text = weather.weather[0].description
 
-        when(weather.weather[0].main.lowercase()) {
-            "rain" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.rain))
-            "cloud" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.cloud))
-            "storm" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.storm))
-            "sunny" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.sunny))
-            "snow" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.snowflake))
+        when(weather.weather[0].icon.subSequence(0,2)) {
+            in arrayOf("09", "10") -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.rain))
+            in arrayOf("02", "03", "04") -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.cloud))
+            "11" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.storm))
+            "01" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.sunny))
+            "13" -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.snowflake))
             else -> binding?.ivMain?.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.cloud))
         }
 
-        binding?.tvHumidity?.text = weather.main.humidity.toString()
+        binding?.tvTemperature?.text = weather.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
 
-        binding?.tvMaxTemp?.text = weather.main.temp_max.toString()
-        binding?.tvMinTemp?.text = weather.main.temp_min.toString()
+        binding?.tvHumidity?.text = weather.main.humidity.toString() + "%"
+
+        binding?.tvMaxTemp?.text = weather.main.temp_max.toString() + getUnit(application.resources.configuration.locales.toString()) + "max"
+        binding?.tvMinTemp?.text = weather.main.temp_min.toString() + getUnit(application.resources.configuration.locales.toString()) + "min"
 
         binding?.tvWindSpeed?.text = weather.wind.speed.toString()
         binding?.tvLocation?.text = weather.name
+        binding?.tvCountry?.text = weather.sys.country
         //TODO("change the units of measurement")
 
-        
+        binding?.tvSunrise?.text = getUnixTime(weather.sys.sunrise)
+        binding?.tvSunset?.text = getUnixTime(weather.sys.sunset)
 
+    }
+
+    private fun getUnixTime(timex: Long) : String? {
+        val date = Date(timex * 1000L)
+        val sdf = SimpleDateFormat("h:mm a", Locale.US)
+        sdf.timeZone = TimeZone.getDefault()
+
+        return sdf.format(date)
+    }
+
+    private fun getUnit(value : String): String {
+        var res = "°C"
+        if (value == "US" || value == "LR" || value == "MM")
+            res = "°F"
+        return res
     }
 
 

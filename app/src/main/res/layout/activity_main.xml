@@ -110,7 +110,7 @@
                     app:layout_constraintBottom_toBottomOf="parent">
 
                     <TextView
-                        android:id="@+id/tvHumidity"
+                        android:id="@+id/tvTemperature"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="6dp"
@@ -123,7 +123,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         />
                     <TextView
-                        android:id="@+id/tvPercent"
+                        android:id="@+id/tvHumidity"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_margin="6dp"
@@ -131,8 +131,8 @@
 
                         android:textColor="@color/secondary_text_color"
                         android:textSize="@dimen/secondary_text_size"
-                        android:text="percent"
-                        app:layout_constraintTop_toBottomOf="@id/tvHumidity"
+                        android:text="humidity"
+                        app:layout_constraintTop_toBottomOf="@id/tvTemperature"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintBottom_toBottomOf="parent"
                         />
@@ -292,20 +292,43 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/divider"
                 />
-            <TextView
-                android:id="@+id/tvLocation"
+
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-
-                android:layout_marginHorizontal="18dp"
-                android:textColor="@color/primary_text_color"
-
-                tools:text = "location"
-                app:layout_constraintStart_toEndOf="@id/ivLocation"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toTopOf="@id/divider"
-                />
-            <View
+                app:layout_constraintBottom_toTopOf="@id/divider">
+
+                <TextView
+                    android:id="@+id/tvLocation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+
+
+                    android:textColor="@color/black"
+
+                    tools:text = "location"
+
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    />
+                <TextView
+                    android:id="@+id/tvCountry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="6dp"
+
+
+                    android:textColor="@color/secondary_text_color"
+                    android:textSize="@dimen/secondary_text_size"
+                    android:text="country"
+                    app:layout_constraintTop_toBottomOf="@id/tvLocation"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    />
+            </androidx.constraintlayout.widget.ConstraintLayout>            <View
                 android:id="@+id/divider"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
