@@ -134,8 +134,8 @@ class MainActivity : AppCompatActivity() {
 
         binding?.tvHumidity?.text = weather.main.humidity.toString() + "%"
 
-        binding?.tvMaxTemp?.text = weather.main.temp_max.toString() + getUnit(application.resources.configuration.locales.toString()) + "max"
-        binding?.tvMinTemp?.text = weather.main.temp_min.toString() + getUnit(application.resources.configuration.locales.toString()) + "min"
+        binding?.tvMaxTemp?.text = weather.main.temp_max.toString() + getUnit(application.resources.configuration.locales.toString()) + " max"
+        binding?.tvMinTemp?.text = weather.main.temp_min.toString() + getUnit(application.resources.configuration.locales.toString()) + " min"
 
         binding?.tvWindSpeed?.text = weather.wind.speed.toString()
         binding?.tvLocation?.text = weather.name
