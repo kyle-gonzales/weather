@@ -17,6 +17,8 @@ import android.location.Location
 import android.net.Uri
 import android.os.Looper
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -61,6 +63,23 @@ class MainActivity : AppCompatActivity() {
 //            Toast.makeText(this, "Location is ON", Toast.LENGTH_SHORT).show()
             getLocationPermission()
         }
+
+        binding?.btnRefresh?.setOnClickListener {
+
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.menu, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.actionRefresh -> requestLocationData()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun getLocationWeatherDetails(latitude : Double, longitude : Double) {

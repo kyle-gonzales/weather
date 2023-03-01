@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/actionRefresh"
+        android:icon="@drawable/ic_refresh_24"
+        android:orderInCategory="100"
+        android:title="Refresh"
+        app:showAsAction="always"/>
+</menu>
+<!--showAsAction : how the icon is displayed on the actionBar-->
+<!--always => the icon is the default icon shown on the action bar -->
+
+<!--orderInCategory : how the items are ordered in the actionBar, (by default: the items are in a drop down menu) -->
