@@ -11,6 +11,9 @@ object Constants {
     const val METRIC_UNIT : String = "metric"
     const val IMPERIAL_UNIT : String = "imperial"
 
+    const val PREFERENCE_NAME : String = "WeatherAppPreference"
+    const val WEATHER_RESPONSE_DATA : String = "weather_response_data"
+
     fun isNetworkAvailable(context: Context) : Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 

@@ -13,16 +13,17 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.ActivityNotFoundException
+import android.content.SharedPreferences
 import android.location.Location
 import android.net.Uri
 import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
+import com.google.gson.Gson
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionDeniedResponse
 import com.karumi.dexter.listener.PermissionGrantedResponse
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var progressBarDialog : Dialog? = null
 
     private lateinit var fusedLocationClient : FusedLocationProviderClient
+    private lateinit var sharedPreferences: SharedPreferences
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {
@@ -56,6 +58,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding?.root)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        sharedPreferences = getSharedPreferences(Constants.PREFERENCE_NAME, Context.MODE_PRIVATE)
+        // MODE_PRIVATE : the created file can only be accessed by calling the application
+
+        updateDisplay()
 
         if (!isLocationEnabled()) {
             showLocationServicesAlertDialog()
@@ -63,17 +69,12 @@ class MainActivity : AppCompatActivity() {
 //            Toast.makeText(this, "Location is ON", Toast.LENGTH_SHORT).show()
             getLocationPermission()
         }
-
-        binding?.btnRefresh?.setOnClickListener {
-
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
@@ -110,9 +111,14 @@ class MainActivity : AppCompatActivity() {
 
                 if (response.isSuccessful) {
                     val weatherList = response.body()
-                    Log.i("WEATHER_RESPONSE", weatherList.toString())
+                    val weatherResponseJsonString : String = Gson().toJson(weatherList)
 
-                    updateDisplay(weatherList!!)
+                    val editor = sharedPreferences.edit()
+                    editor.putString(Constants.WEATHER_RESPONSE_DATA, weatherResponseJsonString)
+                    editor.apply()
+//                    Log.i("WEATHER_RESPONSE", weatherList.toString())
+
+                    updateDisplay()
 
                 } else {
                     when (response.code()) {
@@ -129,14 +135,19 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this@MainActivity, "failed to get weather", Toast.LENGTH_SHORT).show()
                 t.printStackTrace()
             }
-
         })
-
-
     }
 
     @SuppressLint("SetTextI18n")
-    private fun updateDisplay(weather: CurrentWeather) {
+    private fun updateDisplay() {
+        if (!sharedPreferences.contains(Constants.WEATHER_RESPONSE_DATA)) {
+            return
+        }
+        val weatherJson = sharedPreferences.getString(Constants.WEATHER_RESPONSE_DATA, "")
+        if (weatherJson.isNullOrEmpty()) {
+            return
+        }
+        val weather = Gson().fromJson(weatherJson, CurrentWeather::class.java)
         binding?.tvMain?.text = weather.weather[0].main
         binding?.tvDescription?.text = weather.weather[0].description
 
@@ -159,11 +170,9 @@ class MainActivity : AppCompatActivity() {
         binding?.tvWindSpeed?.text = weather.wind.speed.toString()
         binding?.tvLocation?.text = weather.name
         binding?.tvCountry?.text = weather.sys.country
-        //TODO("change the units of measurement")
 
         binding?.tvSunrise?.text = getUnixTime(weather.sys.sunrise)
         binding?.tvSunset?.text = getUnixTime(weather.sys.sunset)
-
     }
 
     private fun getUnixTime(timex: Long) : String? {
@@ -180,7 +189,6 @@ class MainActivity : AppCompatActivity() {
             res = "°F"
         return res
     }
-
 
     private fun showNetworkServicesDialog() {
         val builder = AlertDialog.Builder(this)
@@ -217,17 +225,14 @@ class MainActivity : AppCompatActivity() {
                 override fun onPermissionGranted(response: PermissionGrantedResponse?) {
                     requestLocationData()
                 }
-
                 override fun onPermissionDenied(response: PermissionDeniedResponse?) {
                     if (response!!.isPermanentlyDenied) {
                         showLocationPermissionsRationale()
                     }
                 }
-
                 override fun onPermissionRationaleShouldBeShown(permissionRequest: PermissionRequest?, token: PermissionToken?) {
                     token?.continuePermissionRequest()
                 }
-
             }).onSameThread().check()
     }
 
@@ -243,7 +248,6 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Go to Settings") { dialog, _ ->
                 dialog.dismiss()
                 try {
-
                     val settingsIntent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", packageName, null)
                     settingsIntent.data = uri
@@ -288,7 +292,6 @@ class MainActivity : AppCompatActivity() {
             progressBarDialog!!.cancel()
         progressBarDialog = null
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
